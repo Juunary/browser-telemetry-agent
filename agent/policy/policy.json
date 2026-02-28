@@ -25,6 +25,17 @@
       "reason": "Paste contains sensitive data pattern"
     },
     {
+      "id": "rule-llm-sensitive-paste",
+      "priority": 100,
+      "description": "Warn on LLM prompt paste containing sensitive patterns",
+      "conditions": {
+        "event_type_in": ["LLM_PROMPT_PASTE"],
+        "patterns_any": ["KR_RRN", "CREDIT_CARD", "AWS_ACCESS_KEY"]
+      },
+      "decision": "warn",
+      "reason": "Sensitive data pasted into LLM prompt"
+    },
+    {
       "id": "rule-large-paste",
       "priority": 90,
       "description": "Warn on large paste operations",
