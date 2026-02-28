@@ -1,10 +1,11 @@
 /**
  * Content script for the Browser Telemetry DLP extension.
- * Captures low-frequency events (paste, copy) — NO keylogging.
+ * Captures low-frequency events (paste, copy, file-change) — NO keylogging.
  * Raw text is converted to signals immediately and discarded.
+ * File contents are NEVER read — only metadata (extension, mime, size).
  */
 
-import { EventType, TelemetryEvent, PolicyDecision } from "./shared/schema.js";
+import { EventType, TelemetryEvent, FileSignals } from "./shared/schema.js";
 import { extractTextSignals } from "./shared/signals.js";
 
 function generateEventId(): string {
@@ -126,30 +127,9 @@ function handleDecision(decision: string, reason: string, eventId: string): void
   // "allow" — do nothing
 }
 
-// --- Event handlers ---
+// --- Send event to background ---
 
-async function handleClipboardEvent(
-  e: ClipboardEvent,
-  eventType: EventType
-): Promise<void> {
-  const text = e.clipboardData?.getData("text/plain") ?? "";
-  if (!text) return;
-
-  // Extract signals immediately — raw text is NOT stored
-  const textSignals = await extractTextSignals(text);
-  // text variable goes out of scope here — never persisted
-
-  const event: TelemetryEvent = {
-    event_id: generateEventId(),
-    timestamp: new Date().toISOString(),
-    event_type: eventType,
-    url: window.location.href,
-    domain: window.location.hostname,
-    tab_id: 0, // Will be enriched by background
-    correlation_id: generateCorrelationId(window.location.hostname),
-    text_signals: textSignals,
-  };
-
+function sendEvent(event: TelemetryEvent): void {
   try {
     chrome.runtime.sendMessage(
       { type: "event", payload: event },
@@ -169,6 +149,33 @@ async function handleClipboardEvent(
   }
 }
 
+// --- Clipboard event handlers ---
+
+async function handleClipboardEvent(
+  e: ClipboardEvent,
+  eventType: EventType
+): Promise<void> {
+  const text = e.clipboardData?.getData("text/plain") ?? "";
+  if (!text) return;
+
+  // Extract signals immediately — raw text is NOT stored
+  const textSignals = await extractTextSignals(text);
+  // text variable goes out of scope here — never persisted
+
+  const event: TelemetryEvent = {
+    event_id: generateEventId(),
+    timestamp: new Date().toISOString(),
+    event_type: eventType,
+    url: window.location.href,
+    domain: window.location.hostname,
+    tab_id: 0,
+    correlation_id: generateCorrelationId(window.location.hostname),
+    text_signals: textSignals,
+  };
+
+  sendEvent(event);
+}
+
 // Listen for paste events — low frequency, not keylogging
 document.addEventListener("paste", (e: Event) => {
   handleClipboardEvent(e as ClipboardEvent, EventType.CLIPBOARD_PASTE);
@@ -178,5 +185,65 @@ document.addEventListener("paste", (e: Event) => {
 document.addEventListener("copy", (e: Event) => {
   handleClipboardEvent(e as ClipboardEvent, EventType.CLIPBOARD_COPY);
 });
+
+// --- File upload detection (metadata only, NEVER reads file content) ---
+
+function extractFileExtension(name: string): string {
+  const dot = name.lastIndexOf(".");
+  return dot >= 0 ? name.substring(dot).toLowerCase() : "";
+}
+
+function handleFileInputChange(input: HTMLInputElement): void {
+  const files = input.files;
+  if (!files || files.length === 0) return;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    // Extract metadata signals only — NEVER read file bytes
+    const fileSignals: FileSignals = {
+      file_name: "",          // Omit filename by default for privacy
+      extension: extractFileExtension(file.name),
+      mime_type: file.type || "application/octet-stream",
+      size_bytes: file.size,
+    };
+
+    const event: TelemetryEvent = {
+      event_id: generateEventId(),
+      timestamp: new Date().toISOString(),
+      event_type: EventType.FILE_UPLOAD_ATTEMPT,
+      url: window.location.href,
+      domain: window.location.hostname,
+      tab_id: 0,
+      correlation_id: generateCorrelationId(window.location.hostname),
+      file_signals: fileSignals,
+    };
+
+    sendEvent(event);
+  }
+}
+
+function attachFileListener(input: HTMLInputElement): void {
+  if ((input as any).__dlpFileListenerAttached) return;
+  (input as any).__dlpFileListenerAttached = true;
+  input.addEventListener("change", () => handleFileInputChange(input));
+}
+
+// Attach to existing file inputs
+document.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach(attachFileListener);
+
+// Watch for dynamically inserted file inputs
+const fileObserver = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node instanceof HTMLInputElement && node.type === "file") {
+        attachFileListener(node);
+      }
+      if (node instanceof HTMLElement) {
+        node.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach(attachFileListener);
+      }
+    }
+  }
+});
+fileObserver.observe(document.documentElement, { childList: true, subtree: true });
 
 console.log("[DLP] Content script loaded on:", window.location.href);
