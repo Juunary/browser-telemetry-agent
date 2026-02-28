@@ -128,22 +128,3 @@ For LLM prompt detection, open `test-pages/llm-mock.html` and paste sensitive da
 /docs         # Documentation
 ```
 
-## Progress
-
-- [x] Issue 01: Repo skeleton and build scripts
-- [x] Issue 02: Extension toolchain (MV3 + TypeScript + esbuild)
-- [x] Issue 03: Shared event schema v1 (TS + C# synchronized)
-- [x] Issue 04: Pattern detection and SHA-256 prefix hashing (no raw text)
-- [x] Issue 05: Content script clipboard copy/paste capture (signals only)
-- [x] Issue 08: Background service worker with native messaging bridge
-- [x] Issue 09: .NET solution scaffold (NativeHost + AgentCore + Tests)
-- [x] Issue 10: Native messaging framing protocol (4-byte LE + JSON)
-- [x] Issue 11: Policy engine (PDP) with JSON rules and priority evaluation
-- [x] Issue 12: NDJSON audit logging (no raw content persisted)
-- [x] Issue 13: Enforcement MVP — warn banner UI + best-effort block
-- [x] Issue 14: Test pages (clipboard, file upload, LLM mock)
-- [x] Issue 15: Dev setup docs + native host manifest registration
-- [x] Issue 06: File upload attempt detection (metadata only, no file content)
-- [x] Issue 07: LLM prompt paste detection on allowlisted domains (paste-only, no keylogging)
-
-See [docs/DEV_SETUP.md](docs/DEV_SETUP.md) for the full developer setup guide.
