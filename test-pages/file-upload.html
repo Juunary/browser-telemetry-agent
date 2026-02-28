@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DLP Test — File Upload</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #333; }
+    .test-section { margin: 20px 0; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+    .hint { color: #666; font-size: 13px; margin-top: 8px; }
+    button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+    #log { background: #f5f5f5; padding: 12px; font-family: monospace; font-size: 12px;
+           max-height: 200px; overflow-y: auto; white-space: pre-wrap; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>File Upload Test</h1>
+  <p>Select files to trigger DLP file upload events. Only file metadata is captured (name, extension, size) — file contents are never read.</p>
+
+  <div class="test-section">
+    <h3>Test 1: Single File Upload</h3>
+    <form id="form1">
+      <input type="file" id="file1">
+      <p class="hint">Try selecting a .exe or .bat file to trigger a block decision.</p>
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  <div class="test-section">
+    <h3>Test 2: Document Upload</h3>
+    <form id="form2">
+      <input type="file" id="file2" accept=".docx,.xlsx,.pdf,.csv">
+      <p class="hint">Try selecting a .docx or .xlsx to trigger a warn decision.</p>
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  <h3>Event Log</h3>
+  <div id="log">(File events will appear here)</div>
+
+  <script>
+    const log = document.getElementById('log');
+    function logMsg(msg) {
+      const time = new Date().toLocaleTimeString();
+      log.textContent += `[${time}] ${msg}\n`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files.length > 0) {
+          for (const f of files) {
+            logMsg(`File selected: ${f.name} (${f.type || 'unknown'}, ${f.size} bytes)`);
+          }
+        }
+      });
+    });
+
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        logMsg(`Form submit attempted: ${form.id}`);
+      });
+    });
+
+    logMsg('Test page loaded. DLP extension should inject content script.');
+  </script>
+</body>
+</html>

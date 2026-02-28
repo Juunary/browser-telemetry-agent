@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DLP Test — LLM Prompt Paste (Mock)</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #333; }
+    .test-section { margin: 20px 0; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+    textarea { width: 100%; min-height: 120px; font-size: 14px; padding: 8px; }
+    .hint { color: #666; font-size: 13px; margin-top: 8px; }
+    button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+    #log { background: #f5f5f5; padding: 12px; font-family: monospace; font-size: 12px;
+           max-height: 200px; overflow-y: auto; white-space: pre-wrap; border-radius: 4px; }
+    .chat-bubble { background: #e3f2fd; padding: 12px; border-radius: 12px; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <h1>LLM Prompt Paste Test (Mock)</h1>
+  <p>This page simulates an LLM chat interface. Paste sensitive data into the prompt field to test DLP detection.</p>
+
+  <div class="test-section">
+    <h3>Chat</h3>
+    <div class="chat-bubble">Hello! I'm a mock LLM assistant. How can I help you today?</div>
+
+    <form id="prompt-form">
+      <textarea id="prompt" placeholder="Paste your prompt here..."></textarea>
+      <p class="hint">Try pasting text with credit card numbers or sensitive patterns.</p>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <div class="test-section">
+    <h3>Content-Editable (Rich Text)</h3>
+    <div id="editable" contenteditable="true"
+         style="min-height: 80px; border: 1px solid #ccc; padding: 8px; border-radius: 4px;">
+    </div>
+    <p class="hint">Some LLM interfaces use contenteditable. Paste here to test that case.</p>
+  </div>
+
+  <h3>Event Log</h3>
+  <div id="log">(Events will appear here)</div>
+
+  <script>
+    const log = document.getElementById('log');
+    function logMsg(msg) {
+      const time = new Date().toLocaleTimeString();
+      log.textContent += `[${time}] ${msg}\n`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    document.addEventListener('paste', () => {
+      logMsg('Paste event detected on LLM mock page.');
+    });
+
+    document.getElementById('prompt-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      logMsg('Prompt submitted (mock — no actual LLM call).');
+    });
+
+    logMsg('LLM mock page loaded. DLP extension should inject content script.');
+  </script>
+</body>
+</html>
