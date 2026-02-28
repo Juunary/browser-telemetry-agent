@@ -1,0 +1,25 @@
+# Node
+node_modules/
+extension/dist/
+
+# .NET
+agent/**/bin/
+agent/**/obj/
+agent/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.suo
+*.user
+
+# Logs
+*.log
+
+# Claude
+.claude/
