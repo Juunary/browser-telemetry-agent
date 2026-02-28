@@ -36,3 +36,6 @@ Detects sensitive data exfiltration (paste, file upload, LLM prompt paste) in th
 - [x] Issue 12: NDJSON audit logging (no raw content persisted)
 - [x] Issue 13: Enforcement MVP — warn banner UI + best-effort block
 - [x] Issue 14: Test pages (clipboard, file upload, LLM mock)
+- [x] Issue 15: Dev setup docs + native host manifest registration
+
+See [docs/DEV_SETUP.md](docs/DEV_SETUP.md) for the full developer setup guide.
