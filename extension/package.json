@@ -8,6 +8,7 @@
     "watch": "esbuild src/background.ts src/content.ts --bundle --outdir=dist --format=esm --target=es2022 --watch"
   },
   "devDependencies": {
+    "@types/chrome": "^0.1.37",
     "esbuild": "^0.20.0",
     "typescript": "^5.4.0"
   }
