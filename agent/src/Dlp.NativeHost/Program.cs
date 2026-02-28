@@ -114,6 +114,9 @@ class Program
         return null;
     }
 
+        Console.Error.WriteLine("[DLP NativeHost] Exited.");
+    }
+
     static async Task HandleMessageAsync(JsonDocument doc, Stream stdout, CancellationToken ct)
     {
         var root = doc.RootElement;
@@ -177,6 +180,15 @@ class Program
         {
             Console.Error.WriteLine($"[DLP NativeHost] Audit log write failed: {ex.Message}");
         }
+        // For now, return a simple allow decision (PDP will be added in Issue 11)
+        var decision = new PolicyDecision
+        {
+            EventId = evt.EventId,
+            Decision = Decision.allow,
+            PolicyId = "default",
+            PolicyVersion = "1.0.0",
+            DecisionReason = "Default allow (PDP not yet implemented)"
+        };
 
         var response = new
         {
