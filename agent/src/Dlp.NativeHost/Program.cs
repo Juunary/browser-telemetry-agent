@@ -10,7 +10,6 @@ class Program
 {
     private static PolicyEngine? _policyEngine;
     private static AuditLogger? _auditLogger;
-
     static async Task Main(string[] args)
     {
         Console.Error.WriteLine("[DLP NativeHost] Started. Waiting for messages on stdin...");
@@ -31,7 +30,6 @@ class Program
         var logDir = FindLogDirectory();
         _auditLogger = new AuditLogger(logDir);
         Console.Error.WriteLine($"[DLP NativeHost] Audit logs: {logDir}");
-
         using var stdin = Console.OpenStandardInput();
         using var stdout = Console.OpenStandardOutput();
 
@@ -113,7 +111,6 @@ class Program
 
         return null;
     }
-
     static async Task HandleMessageAsync(JsonDocument doc, Stream stdout, CancellationToken ct)
     {
         var root = doc.RootElement;
