@@ -90,7 +90,6 @@ class Program
         }
         return Path.Combine(exeDir, "logs");
     }
-
     static string? FindPolicyFile()
     {
         // Check next to executable

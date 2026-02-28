@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Dlp.AgentCore")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca89902358db1e653e68a594048012a0c76843f9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f68a42bf71dd84a60176e88807a2fe7dd7290fc8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Dlp.AgentCore")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Dlp.AgentCore")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
