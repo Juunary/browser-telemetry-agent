@@ -32,3 +32,4 @@ Detects sensitive data exfiltration (paste, file upload, LLM prompt paste) in th
 - [x] Issue 08: Background service worker with native messaging bridge
 - [x] Issue 09: .NET solution scaffold (NativeHost + AgentCore + Tests)
 - [x] Issue 10: Native messaging framing protocol (4-byte LE + JSON)
+- [x] Issue 11: Policy engine (PDP) with JSON rules and priority evaluation
