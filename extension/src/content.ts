@@ -149,6 +149,34 @@ function sendEvent(event: TelemetryEvent): void {
   }
 }
 
+// --- LLM domain allowlist (MVP: constant array) ---
+
+const LLM_DOMAIN_ALLOWLIST: string[] = [
+  "chat.openai.com",
+  "chatgpt.com",
+  "claude.ai",
+  "gemini.google.com",
+  "bard.google.com",
+  "copilot.microsoft.com",
+  "localhost",
+  "",  // empty hostname = file:// URLs (test pages)
+];
+
+function isLlmDomain(hostname: string): boolean {
+  return LLM_DOMAIN_ALLOWLIST.some(
+    (d) => d === hostname || (d !== "" && hostname.endsWith("." + d))
+  );
+}
+
+/** Check if the paste target is a prompt-like input field */
+function isPromptField(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  if (target instanceof HTMLTextAreaElement) return true;
+  if (target instanceof HTMLInputElement && target.type === "text") return true;
+  if (target.isContentEditable) return true;
+  return false;
+}
+
 // --- Clipboard event handlers ---
 
 async function handleClipboardEvent(
@@ -158,6 +186,16 @@ async function handleClipboardEvent(
   const text = e.clipboardData?.getData("text/plain") ?? "";
   if (!text) return;
 
+  // Classify as LLM_PROMPT_PASTE if on allowlisted domain + prompt field
+  let resolvedType = eventType;
+  if (
+    eventType === EventType.CLIPBOARD_PASTE &&
+    isLlmDomain(window.location.hostname) &&
+    isPromptField(e.target)
+  ) {
+    resolvedType = EventType.LLM_PROMPT_PASTE;
+  }
+
   // Extract signals immediately — raw text is NOT stored
   const textSignals = await extractTextSignals(text);
   // text variable goes out of scope here — never persisted
@@ -165,7 +203,7 @@ async function handleClipboardEvent(
   const event: TelemetryEvent = {
     event_id: generateEventId(),
     timestamp: new Date().toISOString(),
-    event_type: eventType,
+    event_type: resolvedType,
     url: window.location.href,
     domain: window.location.hostname,
     tab_id: 0,
