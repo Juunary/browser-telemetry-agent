@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DLP Test — Clipboard Paste</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #333; }
+    .test-section { margin: 20px 0; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+    textarea { width: 100%; min-height: 100px; font-size: 14px; padding: 8px; }
+    input[type="text"] { width: 100%; font-size: 14px; padding: 8px; }
+    .hint { color: #666; font-size: 13px; margin-top: 8px; }
+    form { margin-top: 12px; }
+    button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+    #log { background: #f5f5f5; padding: 12px; font-family: monospace; font-size: 12px;
+           max-height: 200px; overflow-y: auto; white-space: pre-wrap; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Clipboard Paste Test</h1>
+  <p>Paste text into the fields below to trigger DLP events. Try pasting credit card numbers or Korean RRNs to see warn/block decisions.</p>
+
+  <div class="test-section">
+    <h3>Test 1: Textarea Paste</h3>
+    <form id="form1">
+      <textarea id="textarea1" placeholder="Paste text here..."></textarea>
+      <p class="hint">Try: 4532-1234-5678-9012 (credit card) or 900101-1234567 (KR RRN)</p>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <div class="test-section">
+    <h3>Test 2: Input Field Paste</h3>
+    <form id="form2">
+      <input type="text" id="input1" placeholder="Paste text here...">
+      <p class="hint">Try pasting an AWS key: AKIAIOSFODNN7EXAMPLE</p>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <div class="test-section">
+    <h3>Test 3: Large Paste (5000+ chars triggers warn)</h3>
+    <textarea id="textarea2" placeholder="Paste a large block of text here (5000+ characters)..."></textarea>
+  </div>
+
+  <h3>Event Log</h3>
+  <div id="log">(Paste events will appear here)</div>
+
+  <script>
+    const log = document.getElementById('log');
+    function logMsg(msg) {
+      const time = new Date().toLocaleTimeString();
+      log.textContent += `[${time}] ${msg}\n`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    document.addEventListener('paste', () => {
+      logMsg('Paste event detected — DLP content script should process this.');
+    });
+
+    document.addEventListener('copy', () => {
+      logMsg('Copy event detected.');
+    });
+
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        logMsg(`Form submit attempted: ${form.id}`);
+        // Note: if DLP blocks, this won't fire due to preventDefault
+      });
+    });
+
+    logMsg('Test page loaded. DLP extension should inject content script.');
+  </script>
+</body>
+</html>
