@@ -1,0 +1,62 @@
+{
+  "policy_id": "mvp-policy",
+  "policy_version": "1.0.0",
+  "default": "allow",
+  "exceptions": [
+    {
+      "id": "exc-internal",
+      "description": "Allow internal company domains",
+      "conditions": {
+        "domain_in": ["internal.company.com", "intranet.local"]
+      },
+      "decision": "allow"
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule-sensitive-paste",
+      "priority": 100,
+      "description": "Warn on paste containing sensitive patterns",
+      "conditions": {
+        "event_type_in": ["CLIPBOARD_PASTE"],
+        "patterns_any": ["KR_RRN", "CREDIT_CARD", "AWS_ACCESS_KEY"]
+      },
+      "decision": "warn",
+      "reason": "Paste contains sensitive data pattern"
+    },
+    {
+      "id": "rule-large-paste",
+      "priority": 90,
+      "description": "Warn on large paste operations",
+      "conditions": {
+        "event_type_in": ["CLIPBOARD_PASTE", "LLM_PROMPT_PASTE"],
+        "text_length_min": 5000
+      },
+      "decision": "warn",
+      "reason": "Large text paste detected"
+    },
+    {
+      "id": "rule-block-exe-upload",
+      "priority": 100,
+      "description": "Block executable file uploads",
+      "conditions": {
+        "event_type_in": ["FILE_UPLOAD_ATTEMPT"],
+        "file_extension_in": [".exe", ".dll", ".bat", ".cmd", ".ps1", ".msi"]
+      },
+      "decision": "block",
+      "reason": "Executable file upload blocked by policy"
+    },
+    {
+      "id": "rule-warn-doc-upload",
+      "priority": 80,
+      "description": "Warn on document uploads to external sites",
+      "conditions": {
+        "event_type_in": ["FILE_UPLOAD_ATTEMPT"],
+        "file_extension_in": [".docx", ".xlsx", ".pptx", ".pdf", ".csv"],
+        "domain_not_in": ["internal.company.com"]
+      },
+      "decision": "warn",
+      "reason": "Document upload to external site detected"
+    }
+  ]
+}
