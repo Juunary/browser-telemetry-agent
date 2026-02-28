@@ -30,3 +30,4 @@ Detects sensitive data exfiltration (paste, file upload, LLM prompt paste) in th
 - [x] Issue 04: Pattern detection and SHA-256 prefix hashing (no raw text)
 - [x] Issue 05: Content script clipboard copy/paste capture (signals only)
 - [x] Issue 08: Background service worker with native messaging bridge
+- [x] Issue 09: .NET solution scaffold (NativeHost + AgentCore + Tests)
