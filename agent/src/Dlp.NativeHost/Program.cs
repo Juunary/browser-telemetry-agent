@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Dlp.AgentCore;
+using Dlp.AgentCore.Logging;
 using Dlp.AgentCore.Policy;
 using Dlp.AgentCore.Schema;
 
@@ -8,6 +9,7 @@ namespace Dlp.NativeHost;
 class Program
 {
     private static PolicyEngine? _policyEngine;
+    private static AuditLogger? _auditLogger;
 
     static async Task Main(string[] args)
     {
@@ -24,6 +26,11 @@ class Program
         {
             Console.Error.WriteLine("[DLP NativeHost] WARNING: No policy.json found. Using default allow.");
         }
+
+        // Initialize audit logger
+        var logDir = FindLogDirectory();
+        _auditLogger = new AuditLogger(logDir);
+        Console.Error.WriteLine($"[DLP NativeHost] Audit logs: {logDir}");
 
         using var stdin = Console.OpenStandardInput();
         using var stdout = Console.OpenStandardOutput();
@@ -68,7 +75,22 @@ class Program
             Console.Error.WriteLine("[DLP NativeHost] Cancelled. Shutting down.");
         }
 
+        _auditLogger?.Dispose();
         Console.Error.WriteLine("[DLP NativeHost] Exited.");
+    }
+
+    static string FindLogDirectory()
+    {
+        var exeDir = AppContext.BaseDirectory;
+        var dir = new DirectoryInfo(exeDir);
+        while (dir != null)
+        {
+            var candidate = Path.Combine(dir.FullName, "agent", "logs");
+            if (Directory.Exists(Path.Combine(dir.FullName, "agent")))
+                return candidate;
+            dir = dir.Parent;
+        }
+        return Path.Combine(exeDir, "logs");
     }
 
     static string? FindPolicyFile()
@@ -145,6 +167,16 @@ class Program
         }
 
         Console.Error.WriteLine($"[DLP NativeHost] Decision: {decision.Decision} — {decision.DecisionReason}");
+
+        // Write audit log (no raw text — only signals and decisions)
+        try
+        {
+            _auditLogger?.LogEvent(evt, decision);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[DLP NativeHost] Audit log write failed: {ex.Message}");
+        }
 
         var response = new
         {
