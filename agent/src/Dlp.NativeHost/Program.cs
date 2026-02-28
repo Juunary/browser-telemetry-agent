@@ -1,14 +1,29 @@
 using System.Text.Json;
 using Dlp.AgentCore;
+using Dlp.AgentCore.Policy;
 using Dlp.AgentCore.Schema;
 
 namespace Dlp.NativeHost;
 
 class Program
 {
+    private static PolicyEngine? _policyEngine;
+
     static async Task Main(string[] args)
     {
         Console.Error.WriteLine("[DLP NativeHost] Started. Waiting for messages on stdin...");
+
+        // Load policy from file next to the executable, or from agent/policy/
+        var policyPath = FindPolicyFile();
+        if (policyPath != null)
+        {
+            _policyEngine = PolicyEngine.LoadFromFile(policyPath);
+            Console.Error.WriteLine($"[DLP NativeHost] Policy loaded from: {policyPath}");
+        }
+        else
+        {
+            Console.Error.WriteLine("[DLP NativeHost] WARNING: No policy.json found. Using default allow.");
+        }
 
         using var stdin = Console.OpenStandardInput();
         using var stdout = Console.OpenStandardOutput();
@@ -56,6 +71,27 @@ class Program
         Console.Error.WriteLine("[DLP NativeHost] Exited.");
     }
 
+    static string? FindPolicyFile()
+    {
+        // Check next to executable
+        var exeDir = AppContext.BaseDirectory;
+        var candidate = Path.Combine(exeDir, "policy.json");
+        if (File.Exists(candidate)) return candidate;
+
+        // Check agent/policy/ relative to repo root
+        var dir = new DirectoryInfo(exeDir);
+        while (dir != null)
+        {
+            candidate = Path.Combine(dir.FullName, "policy", "policy.json");
+            if (File.Exists(candidate)) return candidate;
+            candidate = Path.Combine(dir.FullName, "agent", "policy", "policy.json");
+            if (File.Exists(candidate)) return candidate;
+            dir = dir.Parent;
+        }
+
+        return null;
+    }
+
     static async Task HandleMessageAsync(JsonDocument doc, Stream stdout, CancellationToken ct)
     {
         var root = doc.RootElement;
@@ -91,15 +127,24 @@ class Program
 
         Console.Error.WriteLine($"[DLP NativeHost] Event: {evt.EventType} from {evt.Domain}");
 
-        // For now, return a simple allow decision (PDP will be added in Issue 11)
-        var decision = new PolicyDecision
+        PolicyDecision decision;
+        if (_policyEngine != null)
         {
-            EventId = evt.EventId,
-            Decision = Decision.allow,
-            PolicyId = "default",
-            PolicyVersion = "1.0.0",
-            DecisionReason = "Default allow (PDP not yet implemented)"
-        };
+            decision = _policyEngine.Evaluate(evt);
+        }
+        else
+        {
+            decision = new PolicyDecision
+            {
+                EventId = evt.EventId,
+                Decision = Decision.allow,
+                PolicyId = "none",
+                PolicyVersion = "0",
+                DecisionReason = "No policy loaded — default allow"
+            };
+        }
+
+        Console.Error.WriteLine($"[DLP NativeHost] Decision: {decision.Decision} — {decision.DecisionReason}");
 
         var response = new
         {
