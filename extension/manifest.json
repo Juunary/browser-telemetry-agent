@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Browser Telemetry DLP",
+  "version": "0.1.0",
+  "description": "Detects sensitive data exfiltration in the browser (paste, upload, LLM prompt).",
+  "permissions": [
+    "nativeMessaging"
+  ],
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {}
+}
