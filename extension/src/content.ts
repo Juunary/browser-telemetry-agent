@@ -248,6 +248,8 @@ function handleDecision(decision: string, reason: string, eventId: string): void
 
 // --- Send event to background ---
 
+// --- Send event to background ---
+
 function sendEvent(event: TelemetryEvent): void {
   try {
     chrome.runtime.sendMessage(
@@ -323,6 +325,7 @@ async function handleClipboardEvent(
     event_id: generateEventId(),
     timestamp: new Date().toISOString(),
     event_type: resolvedType,
+    event_type: eventType,
     url: window.location.href,
     domain: window.location.hostname,
     tab_id: 0,
