@@ -62,6 +62,54 @@ A new correlation ID is generated per event. It ties events from the same page s
 
 ---
 
+## How to Run
+
+### Prerequisites
+- Node.js 18+ and npm
+- .NET 8 SDK
+- Google Chrome
+
+### 1. Build
+
+```powershell
+# Extension (TypeScript → dist/)
+cd extension
+npm ci
+npm run build
+
+# Agent (.NET)
+cd ../agent/src
+dotnet build Dlp.NativeHost -c Release
+```
+
+### 2. Load Extension in Chrome
+
+1. Open `chrome://extensions`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked** → select the `extension/` folder
+4. Note the **Extension ID** shown (e.g. `pigonkbnlpiecabnanhkomnbmcabmgcf`)
+
+### 3. Register Native Messaging Host
+
+```powershell
+# Run from project root (PowerShell as Administrator)
+.\scripts\register-native-host.ps1 -ExtensionId "YOUR_EXTENSION_ID"
+```
+
+This builds the agent in Release mode and writes the registry key Chrome needs to find the native host.
+
+### 4. Test the Pipeline
+
+1. Open `test-pages/clipboard.html` in Chrome
+2. Paste a credit card number (e.g. `4111 1111 1111 1111`) into the text box
+3. A **yellow warn banner** appears at the top of the page
+4. Check `agent/logs/events-YYYYMMDD.ndjson` — a log entry is written with signals only (no raw text)
+
+For executable upload blocking, try attaching a `.exe` file on `test-pages/file-upload.html`.
+For LLM prompt detection, open `test-pages/llm-mock.html` and paste sensitive data into the prompt field.
+
+---
+
 ## Quick Start
 
 ```bash

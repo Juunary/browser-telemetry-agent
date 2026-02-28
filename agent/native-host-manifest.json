@@ -1,9 +1,9 @@
-{
-  "name": "com.browser_telemetry.agent",
-  "description": "Browser Telemetry DLP Native Messaging Host",
-  "path": "C:\\path\\to\\Dlp.NativeHost.exe",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://YOUR_EXTENSION_ID_HERE/"
-  ]
+﻿{
+    "path":  "C:\\Users\\user\\Documents\\IntelliJ\\browser-telemetry-agent\\agent\\src\\Dlp.NativeHost\\bin\\Release\\net8.0\\Dlp.NativeHost.exe",
+    "description":  "Browser Telemetry DLP Native Messaging Host",
+    "name":  "com.browser_telemetry.agent",
+    "allowed_origins":  [
+                            "chrome-extension://pigonkbnlpiecabnanhkomnbmcabmgcf/"
+                        ],
+    "type":  "stdio"
 }
