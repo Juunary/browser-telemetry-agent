@@ -34,3 +34,4 @@ Detects sensitive data exfiltration (paste, file upload, LLM prompt paste) in th
 - [x] Issue 10: Native messaging framing protocol (4-byte LE + JSON)
 - [x] Issue 11: Policy engine (PDP) with JSON rules and priority evaluation
 - [x] Issue 12: NDJSON audit logging (no raw content persisted)
+- [x] Issue 13: Enforcement MVP — warn banner UI + best-effort block

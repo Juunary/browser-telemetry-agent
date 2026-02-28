@@ -4,7 +4,7 @@
  * Raw text is converted to signals immediately and discarded.
  */
 
-import { EventType, TelemetryEvent } from "./shared/schema.js";
+import { EventType, TelemetryEvent, PolicyDecision } from "./shared/schema.js";
 import { extractTextSignals } from "./shared/signals.js";
 
 function generateEventId(): string {
@@ -14,6 +14,119 @@ function generateEventId(): string {
 function generateCorrelationId(tabInfo: string): string {
   return `cor_${tabInfo}_${Date.now()}`;
 }
+
+// --- Enforcement UI ---
+
+let bannerTimeout: ReturnType<typeof setTimeout> | null = null;
+const DEBOUNCE_MS = 3000; // Don't show duplicate banners within 3 seconds
+
+function showBanner(decision: string, reason: string): void {
+  // Debounce: skip if a banner is already showing
+  if (document.getElementById("dlp-banner")) return;
+
+  const isBlock = decision === "block";
+  const banner = document.createElement("div");
+  banner.id = "dlp-banner";
+  banner.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; z-index: 2147483647;
+    padding: 12px 20px; font-family: -apple-system, sans-serif; font-size: 14px;
+    color: white; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: dlp-slide-in 0.3s ease-out;
+    background: ${isBlock ? "#d32f2f" : "#f57c00"};
+  `;
+
+  const icon = isBlock ? "\u26D4" : "\u26A0\uFE0F";
+  const title = isBlock ? "Blocked" : "Warning";
+
+  banner.innerHTML = `
+    <div style="flex:1">
+      <strong>${icon} DLP ${title}:</strong> ${escapeHtml(reason)}
+    </div>
+    <button id="dlp-banner-close" style="
+      background: none; border: 1px solid rgba(255,255,255,0.5); color: white;
+      padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;
+      margin-left: 16px;
+    ">Dismiss</button>
+  `;
+
+  // Add slide-in animation
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes dlp-slide-in {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  `;
+  banner.appendChild(style);
+
+  document.body.appendChild(banner);
+
+  banner.querySelector("#dlp-banner-close")?.addEventListener("click", () => {
+    removeBanner();
+  });
+
+  // Auto-dismiss warnings after 8 seconds, blocks stay longer
+  const autoMs = isBlock ? 15000 : 8000;
+  bannerTimeout = setTimeout(removeBanner, autoMs);
+}
+
+function removeBanner(): void {
+  const banner = document.getElementById("dlp-banner");
+  if (banner) {
+    banner.remove();
+  }
+  if (bannerTimeout) {
+    clearTimeout(bannerTimeout);
+    bannerTimeout = null;
+  }
+}
+
+function escapeHtml(str: string): string {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// --- Best-effort block ---
+
+function blockFormSubmits(): void {
+  // Prevent form submissions on the page for a short window
+  const handler = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("[DLP] Form submit blocked by policy.");
+  };
+  document.addEventListener("submit", handler, { capture: true, once: true });
+
+  // Auto-remove after 10 seconds (one-shot protection)
+  setTimeout(() => {
+    document.removeEventListener("submit", handler, { capture: true } as any);
+  }, 10000);
+}
+
+function clearFileInputs(): void {
+  const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
+  inputs.forEach((input) => {
+    input.value = "";
+  });
+}
+
+// --- Decision handler ---
+
+function handleDecision(decision: string, reason: string, eventId: string): void {
+  console.log(`[DLP] Decision for ${eventId}: ${decision} — ${reason}`);
+
+  if (decision === "warn") {
+    showBanner("warn", reason);
+  } else if (decision === "block") {
+    showBanner("block", reason);
+    blockFormSubmits();
+    clearFileInputs();
+  }
+  // "allow" — do nothing
+}
+
+// --- Event handlers ---
 
 async function handleClipboardEvent(
   e: ClipboardEvent,
@@ -46,18 +159,14 @@ async function handleClipboardEvent(
           return;
         }
         if (response?.decision) {
-          handleDecision(response.decision, event.event_id);
+          const reason = response.full?.decision_reason ?? "Policy decision";
+          handleDecision(response.decision, reason, event.event_id);
         }
       }
     );
   } catch (err) {
     console.warn("[DLP] Error sending message:", err);
   }
-}
-
-function handleDecision(decision: string, eventId: string): void {
-  // Enforcement will be implemented in Issue 13
-  console.log(`[DLP] Decision for ${eventId}: ${decision}`);
 }
 
 // Listen for paste events — low frequency, not keylogging
