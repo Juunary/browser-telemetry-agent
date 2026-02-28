@@ -283,7 +283,4 @@ const fileObserver = new MutationObserver((mutations) => {
 });
 fileObserver.observe(document.documentElement, { childList: true, subtree: true });
 
- * Captures low-frequency events (paste, file upload, etc.) — NO keylogging.
- */
-
 console.log("[DLP] Content script loaded on:", window.location.href);

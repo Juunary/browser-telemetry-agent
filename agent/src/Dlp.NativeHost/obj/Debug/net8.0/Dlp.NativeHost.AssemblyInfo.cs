@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Dlp.NativeHost")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef0e7bc20ddaf2f94c9434f29c75a5c69f3ce03b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ee159dc1e4db7d655d783cd17df264205ed62478")]
 [assembly: System.Reflection.AssemblyProductAttribute("Dlp.NativeHost")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Dlp.NativeHost")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
