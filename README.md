@@ -26,3 +26,4 @@ Detects sensitive data exfiltration (paste, file upload, LLM prompt paste) in th
 
 - [x] Issue 01: Repo skeleton and build scripts
 - [x] Issue 02: Extension toolchain (MV3 + TypeScript + esbuild)
+- [x] Issue 03: Shared event schema v1 (TS + C# synchronized)
