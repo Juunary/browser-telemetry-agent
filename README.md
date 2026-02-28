@@ -25,3 +25,4 @@ Detects sensitive data exfiltration (paste, file upload, LLM prompt paste) in th
 ## Progress
 
 - [x] Issue 01: Repo skeleton and build scripts
+- [x] Issue 02: Extension toolchain (MV3 + TypeScript + esbuild)
